@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import CoreDisplay from './CoreDisplay';
 import WallDisplay from './WallDisplay';
@@ -7,6 +6,7 @@ import GameMessage from './GameMessage';
 import CharacterDialogue from './CharacterDialogue';
 import CoreExplosion from './CoreExplosion';
 import CustomGameSettings from './CustomGameSettings';
+import LongDivisionDisplay from './LongDivisionDisplay';
 import { Shield, RotateCcw, Settings } from 'lucide-react';
 import { soundManager } from '../utils/soundEffects';
 
@@ -23,22 +23,66 @@ const DivisionBreaker: React.FC = () => {
   const [showWarning, setShowWarning] = useState(false);
   const [showExplosion, setShowExplosion] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [quotientOptions, setQuotientOptions] = useState([20, 40, 61]);
   
   // Character dialogue
   const [heroText, setHeroText] = useState("We must break that wall to recover the core! Use the quotient cannons to divide 366 by 6!");
   const [villainText, setVillainText] = useState("Your puny attempts will fail! My wall is impenetrable. The core is mine!");
   const [showHero, setShowHero] = useState(true);
   const [showVillain, setShowVillain] = useState(true);
-  
-  // Available quotient options
-  const quotientOptions = [20, 40, 61];
 
   // Initialize game sounds
   useEffect(() => {
+    // Try to play background music on component mount
+    const musicButton = document.getElementById('music-toggle-button');
+    if (musicButton) {
+      setTimeout(() => {
+        musicButton.click();
+      }, 1000);
+    }
+    
     return () => {
       soundManager.stopSound('background');
     };
   }, []);
+  
+  // Update quotient options based on remaining strength
+  useEffect(() => {
+    const updateQuotientOptions = () => {
+      if (gameStatus !== 'playing' || remainingStrength <= 0) return;
+      
+      // Calculate new quotient options based on remaining strength
+      const exactQuotient = Math.floor(remainingStrength / divisor);
+      
+      // If there's an exact quotient to finish the game, include it
+      if (exactQuotient * divisor === remainingStrength && exactQuotient > 0) {
+        const options = [
+          Math.max(1, Math.floor(exactQuotient / 3)), 
+          Math.floor(exactQuotient / 2), 
+          exactQuotient
+        ];
+        setQuotientOptions(options);
+      } else {
+        // Otherwise provide strategic options
+        const maxSafeQuotient = Math.floor(remainingStrength / divisor);
+        
+        // Create three options: small, medium and large
+        const options = [
+          Math.max(1, Math.floor(maxSafeQuotient / 4)),
+          Math.floor(maxSafeQuotient / 2),
+          Math.max(Math.floor(maxSafeQuotient * 0.75), Math.min(maxSafeQuotient, 2))
+        ];
+        
+        // Ensure options are all different
+        if (options[0] === options[1]) options[0] = Math.max(1, options[0] - 1);
+        if (options[1] === options[2]) options[1] = Math.max(options[0] + 1, options[1] - 1);
+        
+        setQuotientOptions(options);
+      }
+    };
+    
+    updateQuotientOptions();
+  }, [remainingStrength, divisor, gameStatus]);
 
   // Reset the game
   const resetGame = () => {
@@ -225,28 +269,13 @@ const DivisionBreaker: React.FC = () => {
           {/* Game Message */}
           <GameMessage message={message} gameStatus={gameStatus} />
           
-          {/* Tracker Panel */}
-          <div className="cyber-panel p-4">
-            <h3 className="text-center text-lg font-bold mb-3 cyber-text">SHOT HISTORY</h3>
-            <div className="font-mono space-y-2">
-              <div className="flex justify-between">
-                <span>Starting:</span>
-                <span className="text-cyber-wall">{dividend}</span>
-              </div>
-              
-              {shotHistory.map((shot, index) => (
-                <div key={index} className="flex justify-between text-cyber-accent animate-appear" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <span>Shot {index + 1}: {shot.quotient} × {divisor}</span>
-                  <span>-{shot.damage}</span>
-                </div>
-              ))}
-              
-              <div className="border-t border-cyber-core/30 mt-2 pt-2 flex justify-between">
-                <span>Remaining:</span>
-                <span className={`font-bold ${remainingStrength === 0 ? 'text-cyber-success' : 'text-cyber-core'}`}>{remainingStrength}</span>
-              </div>
-            </div>
-          </div>
+          {/* Long Division Display */}
+          <LongDivisionDisplay 
+            dividend={dividend}
+            divisor={divisor}
+            shotHistory={shotHistory}
+            remainingStrength={remainingStrength}
+          />
           
           {/* Reset and settings buttons */}
           <div className="flex gap-4">

@@ -12,6 +12,9 @@ class SoundManager {
     this.loadSound('background', '/sounds/background.mp3', true);
     this.loadSound('levelComplete', '/sounds/level-complete.mp3');
     this.loadSound('gameOver', '/sounds/game-over.mp3');
+    
+    // Add event listeners for document interaction to enable audio
+    this.enableAudioOnInteraction();
   }
   
   private loadSound(name: string, path: string, loop: boolean = false): void {
@@ -26,6 +29,24 @@ class SoundManager {
     this.sounds.set(name, audio);
   }
   
+  // This helps with browsers that require user interaction before playing audio
+  private enableAudioOnInteraction(): void {
+    const enableAudio = () => {
+      // Create and play a silent audio to unlock audio context
+      const silentAudio = new Audio();
+      silentAudio.play().catch(() => {});
+      
+      // Remove event listeners after first interaction
+      document.removeEventListener('click', enableAudio);
+      document.removeEventListener('touchstart', enableAudio);
+      document.removeEventListener('keydown', enableAudio);
+    };
+    
+    document.addEventListener('click', enableAudio);
+    document.addEventListener('touchstart', enableAudio);
+    document.addEventListener('keydown', enableAudio);
+  }
+  
   playSound(name: string): void {
     const sound = this.sounds.get(name);
     if (sound) {
@@ -37,6 +58,7 @@ class SoundManager {
       } else {
         // For background music, just play the original
         sound.volume = 0.3;
+        sound.currentTime = 0; // Reset to beginning
         sound.play().catch(err => console.warn(`Error playing background music: ${err}`));
       }
     }

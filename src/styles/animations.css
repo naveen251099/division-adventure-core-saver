@@ -65,6 +65,21 @@
   }
 }
 
+/* Bullet firing animation */
+@keyframes shoot {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.8) translateY(-5px);
+    background-color: rgba(230, 126, 34, 1);
+    box-shadow: 0 0 20px rgba(230, 126, 34, 0.8), inset 0 0 10px rgba(230, 126, 34, 0.8);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* Core explosion animations */
 @keyframes explode {
   0% {
@@ -116,6 +131,10 @@
 
 .barrel-fire {
   animation: barrelFire 0.5s ease-out;
+}
+
+.animate-shoot {
+  animation: shoot 0.3s ease-out;
 }
 
 /* Explosion components */
