@@ -24,8 +24,8 @@ const WallDisplay: React.FC<WallDisplayProps> = ({ remainingStrength, dividend, 
   const wallHeight = `${Math.max(5, 100 - progress * 100)}%`;
   
   return (
-    <div className="wall-container relative h-96 w-full max-w-md mx-auto rounded-md overflow-hidden
-                    border-2 border-cyber-wall/50 bg-cyber-dark">
+    <div className="wall-container relative h-80 w-full max-w-md mx-auto rounded-md overflow-hidden
+                    border-2 border-cyber-wall/50 bg-cyber-dark/80 backdrop-blur-sm">
       <div 
         className={`absolute bottom-0 left-0 right-0 transition-all duration-500 ease-out
                     bg-cyber-wall ${showWarning ? 'animate-flash-warning' : 'animate-pulse-wall'}

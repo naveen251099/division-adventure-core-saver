@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { User, Skull } from 'lucide-react';
+import { Shield, Skull } from 'lucide-react';
 
 interface CharacterDialogueProps {
   heroText: string;
@@ -22,7 +22,7 @@ const CharacterDialogue: React.FC<CharacterDialogueProps> = ({
         <div className="cyber-panel p-3 border-cyber-core">
           <div className="flex items-start">
             <div className="bg-cyber-core/20 p-2 rounded-full mr-2">
-              <User className="w-8 h-8 text-cyber-core" />
+              <Shield className="w-8 h-8 text-cyber-core" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-mono text-cyber-core">{heroText}</p>

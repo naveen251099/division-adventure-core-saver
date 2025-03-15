@@ -226,7 +226,9 @@ const DivisionBreaker: React.FC = () => {
         {Array(maxShots).fill(0).map((_, i) => (
           <div 
             key={i} 
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${i < shotsUsed ? 'bg-cyber-accent' : 'bg-cyber-core/30'}`}
+            className={`w-4 h-4 rounded-full transition-all duration-300
+                       ${i < shotsUsed ? 'bg-cyber-accent' : 'bg-cyber-core/30'}
+                       transform hover:scale-110`}
           ></div>
         ))}
       </div>
@@ -236,7 +238,7 @@ const DivisionBreaker: React.FC = () => {
   return (
     <div className="min-h-screen bg-cyber-black text-cyber-text p-4 md:p-6">
       {/* Header */}
-      <header className="max-w-4xl mx-auto mb-8 cyber-panel p-4 border-b-2 border-cyber-header">
+      <header className="max-w-4xl mx-auto mb-6 cyber-panel p-4 border-b-2 border-cyber-header">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Shield className="w-8 h-8 mr-3 text-cyber-core" />
@@ -253,11 +255,9 @@ const DivisionBreaker: React.FC = () => {
         </div>
       </header>
       
-      <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
+      <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
+        {/* Left column: Core, Wall and Game message */}
         <div className="space-y-6">
-          {/* Core Display */}
-          <CoreDisplay gameStatus={gameStatus} />
-          
           {/* Character Dialogue */}
           <CharacterDialogue 
             heroText={heroText}
@@ -269,13 +269,22 @@ const DivisionBreaker: React.FC = () => {
           {/* Game Message */}
           <GameMessage message={message} gameStatus={gameStatus} />
           
-          {/* Long Division Display */}
-          <LongDivisionDisplay 
-            dividend={dividend}
-            divisor={divisor}
-            shotHistory={shotHistory}
-            remainingStrength={remainingStrength}
-          />
+          {/* Core and Wall visualization */}
+          <div className="relative h-96">
+            {/* Core positioned behind wall */}
+            <div className="absolute inset-0 flex justify-center items-center z-0">
+              <CoreDisplay gameStatus={gameStatus} />
+            </div>
+            
+            {/* Wall display overlapping core */}
+            <div className="absolute inset-0 flex justify-center items-center z-10">
+              <WallDisplay 
+                remainingStrength={remainingStrength} 
+                dividend={dividend}
+                showWarning={showWarning}
+              />
+            </div>
+          </div>
           
           {/* Reset and settings buttons */}
           <div className="flex gap-4">
@@ -302,14 +311,8 @@ const DivisionBreaker: React.FC = () => {
           </div>
         </div>
         
+        {/* Right column: Shooter controls and Long Division */}
         <div className="space-y-6">
-          {/* Wall Display */}
-          <WallDisplay 
-            remainingStrength={remainingStrength} 
-            dividend={dividend}
-            showWarning={showWarning}
-          />
-          
           {/* Shooter Controls */}
           <ShooterControls
             onShot={handleShot}
@@ -320,6 +323,14 @@ const DivisionBreaker: React.FC = () => {
             showCustomInput={showCustomInput}
             setShowCustomInput={setShowCustomInput}
             divisor={divisor}
+          />
+          
+          {/* Long Division Display */}
+          <LongDivisionDisplay 
+            dividend={dividend}
+            divisor={divisor}
+            shotHistory={shotHistory}
+            remainingStrength={remainingStrength}
           />
         </div>
       </div>
