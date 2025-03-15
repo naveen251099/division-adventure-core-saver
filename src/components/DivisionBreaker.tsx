@@ -226,7 +226,7 @@ const DivisionBreaker: React.FC = () => {
         {Array(maxShots).fill(0).map((_, i) => (
           <div 
             key={i} 
-            className={`w-4 h-4 rounded-full transition-all duration-300
+            className={`w-3 h-3 rounded-full transition-all duration-300
                        ${i < shotsUsed ? 'bg-cyber-accent' : 'bg-cyber-core/30'}
                        transform hover:scale-110`}
           ></div>
@@ -236,84 +236,51 @@ const DivisionBreaker: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-cyber-black text-cyber-text p-4 md:p-6">
-      {/* Header */}
-      <header className="max-w-4xl mx-auto mb-6 cyber-panel p-4 border-b-2 border-cyber-header">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Shield className="w-8 h-8 mr-3 text-cyber-core" />
-            <h1 className="text-3xl font-bold cyber-text">DIVISION BREAKER</h1>
-          </div>
-          <div className="text-xl font-mono border-2 border-cyber-core/50 p-2 rounded-md bg-cyber-dark">
-            <span className="text-cyber-wall">{dividend}</span> ÷ <span className="text-cyber-core">{divisor}</span>
-          </div>
+    <div className="min-h-screen bg-cyber-black text-cyber-text p-4">
+      {/* Compact Header */}
+      <header className="max-w-6xl mx-auto mb-4 flex items-center justify-between">
+        <div className="flex items-center">
+          <Shield className="w-5 h-5 mr-2 text-cyber-core" />
+          <h1 className="text-xl font-bold cyber-text">DIVISION BREAKER</h1>
         </div>
-        
-        <div className="mt-2 text-center">
-          <p className="text-gray-400">Break the wall using the perfect combination of shots to save the core!</p>
-          {renderShotsRemaining()}
+        <div className="text-lg font-mono border border-cyber-core/50 p-1 px-3 rounded-md bg-cyber-dark">
+          <span className="text-cyber-wall">{dividend}</span> ÷ <span className="text-cyber-core">{divisor}</span>
         </div>
+        {renderShotsRemaining()}
       </header>
       
-      <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
-        {/* Left column: Core, Wall and Game message */}
-        <div className="space-y-6">
-          {/* Character Dialogue */}
-          <CharacterDialogue 
-            heroText={heroText}
-            villainText={villainText}
-            showHero={showHero}
-            showVillain={showVillain}
-          />
-          
-          {/* Game Message */}
-          <GameMessage message={message} gameStatus={gameStatus} />
-          
-          {/* Core and Wall visualization */}
-          <div className="relative h-96">
-            {/* Core positioned behind wall */}
-            <div className="absolute inset-0 flex justify-center items-center z-0">
-              <CoreDisplay gameStatus={gameStatus} />
-            </div>
-            
-            {/* Wall display overlapping core */}
-            <div className="absolute inset-0 flex justify-center items-center z-10">
-              <WallDisplay 
-                remainingStrength={remainingStrength} 
-                dividend={dividend}
-                showWarning={showWarning}
-              />
-            </div>
-          </div>
-          
-          {/* Reset and settings buttons */}
-          <div className="flex gap-4">
-            {gameStatus !== 'playing' && (
-              <button onClick={resetGame} className="cyber-button flex-1 py-3">
-                <div className="flex items-center justify-center gap-2">
-                  <RotateCcw size={18} />
-                  <span>RESTART MISSION</span>
-                </div>
-              </button>
-            )}
-            
-            {gameStatus !== 'playing' && (
-              <button 
-                onClick={() => setShowSettingsDialog(true)} 
-                className="cyber-button flex-1 py-3 bg-cyber-accent/70"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <Settings size={18} />
-                  <span>NEW MISSION</span>
-                </div>
-              </button>
-            )}
-          </div>
+      {/* Character Dialogue */}
+      <div className="max-w-6xl mx-auto mb-2">
+        <CharacterDialogue 
+          heroText={heroText}
+          villainText={villainText}
+          showHero={showHero}
+          showVillain={showVillain}
+        />
+      </div>
+      
+      {/* Game Message */}
+      <div className="max-w-6xl mx-auto mb-4">
+        <GameMessage message={message} gameStatus={gameStatus} />
+      </div>
+      
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Left column: Core */}
+        <div className="md:col-span-1 flex justify-center items-center">
+          <CoreDisplay gameStatus={gameStatus} />
         </div>
         
-        {/* Right column: Shooter controls and Long Division */}
-        <div className="space-y-6">
-          {/* Shooter Controls */}
+        {/* Middle column: Wall */}
+        <div className="md:col-span-1 flex justify-center items-center">
+          <WallDisplay 
+            remainingStrength={remainingStrength} 
+            dividend={dividend}
+            showWarning={showWarning}
+          />
+        </div>
+        
+        {/* Right column: Shooter Controls */}
+        <div className="md:col-span-1 flex flex-col justify-center">
           <ShooterControls
             onShot={handleShot}
             quotientOptions={quotientOptions}
@@ -324,8 +291,12 @@ const DivisionBreaker: React.FC = () => {
             setShowCustomInput={setShowCustomInput}
             divisor={divisor}
           />
-          
-          {/* Long Division Display */}
+        </div>
+      </div>
+      
+      {/* Bottom row: Long Division Display and Game Controls */}
+      <div className="max-w-6xl mx-auto mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
           <LongDivisionDisplay 
             dividend={dividend}
             divisor={divisor}
@@ -333,18 +304,41 @@ const DivisionBreaker: React.FC = () => {
             remainingStrength={remainingStrength}
           />
         </div>
+        
+        <div className="flex flex-col justify-between">
+          {/* Game controls (only show when game is over) */}
+          {gameStatus !== 'playing' && (
+            <div className="flex gap-4 mb-4">
+              <button onClick={resetGame} className="cyber-button flex-1 py-2">
+                <div className="flex items-center justify-center gap-2">
+                  <RotateCcw size={16} />
+                  <span>RESTART</span>
+                </div>
+              </button>
+              
+              <button 
+                onClick={() => setShowSettingsDialog(true)} 
+                className="cyber-button flex-1 py-2 bg-cyber-accent/70"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Settings size={16} />
+                  <span>NEW MISSION</span>
+                </div>
+              </button>
+            </div>
+          )}
+          
+          {/* Brief instructions */}
+          <div className="cyber-panel p-3 border-t-2 border-cyber-footer">
+            <h3 className="text-center text-sm font-bold mb-1">MISSION BRIEFING</h3>
+            <ul className="text-xs text-gray-300 space-y-1">
+              <li>• Break the wall with exactly 0 remaining to save the core.</li>
+              <li>• Each quotient is multiplied by {divisor} to reduce wall strength.</li>
+              <li>• Complete in 4 shots or less.</li>
+            </ul>
+          </div>
+        </div>
       </div>
-      
-      {/* Instructions/Help */}
-      <footer className="max-w-4xl mx-auto mt-8 cyber-panel p-4 border-t-2 border-cyber-footer">
-        <h3 className="text-center text-lg font-bold mb-2">MISSION BRIEFING</h3>
-        <ul className="text-sm text-gray-300 space-y-1">
-          <li>• Break the wall with exactly 0 remaining to save the core.</li>
-          <li>• Each quotient you select is multiplied by {divisor} and reduces the wall strength.</li>
-          <li>• Complete the mission in 4 shots or less.</li>
-          <li>• Use the custom quotient option for precision attacks.</li>
-        </ul>
-      </footer>
       
       {/* Core Explosion Animation */}
       <CoreExplosion 

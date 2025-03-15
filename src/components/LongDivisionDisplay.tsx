@@ -15,8 +15,8 @@ const LongDivisionDisplay: React.FC<LongDivisionDisplayProps> = ({
   remainingStrength
 }) => {
   return (
-    <div className="cyber-panel p-4">
-      <h3 className="text-center text-lg font-bold mb-3 cyber-text">LONG DIVISION</h3>
+    <div className="cyber-panel p-3">
+      <h3 className="text-center text-sm font-bold mb-2 cyber-text">DIVISION PROGRESS</h3>
       
       <div className="flex items-center justify-center font-mono">
         {/* Division layout */}
@@ -35,11 +35,7 @@ const LongDivisionDisplay: React.FC<LongDivisionDisplayProps> = ({
               <>
                 {shotHistory.map((shot, index) => (
                   <React.Fragment key={index}>
-                    <div className="flex items-center">
-                      <span className="text-cyber-accent">- {shot.damage}</span>
-                      <span className="ml-4 text-sm text-gray-400">{divisor} × {shot.quotient}</span>
-                    </div>
-                    
+                    <div className="text-cyber-accent">- {shot.damage}</div>
                     <div className="h-px w-full bg-cyber-core/30 my-1"></div>
                   </React.Fragment>
                 ))}
@@ -55,7 +51,7 @@ const LongDivisionDisplay: React.FC<LongDivisionDisplayProps> = ({
           {/* Quotient display on top */}
           {shotHistory.length > 0 && (
             <div className="absolute -top-6 left-10">
-              <div className="text-cyber-success">
+              <div className="text-cyber-success text-sm">
                 {shotHistory.map(shot => shot.quotient).join(' + ')}
                 {shotHistory.length > 0 ? ' = ' : ''}
                 {shotHistory.length > 0 ? shotHistory.reduce((sum, shot) => sum + shot.quotient, 0) : ''}
