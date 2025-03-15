@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowDown, Zap, X } from 'lucide-react';
+import { ArrowDown, Zap, X, Volume2, VolumeX } from 'lucide-react';
+import { soundManager } from '../utils/soundEffects';
 
 interface ShooterControlsProps {
   onShot: (quotient: number) => void;
@@ -10,6 +11,7 @@ interface ShooterControlsProps {
   setCustomQuotient: React.Dispatch<React.SetStateAction<string>>;
   showCustomInput: boolean;
   setShowCustomInput: React.Dispatch<React.SetStateAction<boolean>>;
+  divisor: number;
 }
 
 const ShooterControls: React.FC<ShooterControlsProps> = ({
@@ -19,9 +21,12 @@ const ShooterControls: React.FC<ShooterControlsProps> = ({
   customQuotient,
   setCustomQuotient,
   showCustomInput,
-  setShowCustomInput
+  setShowCustomInput,
+  divisor
 }) => {
   const [activeShooter, setActiveShooter] = useState<number | null>(null);
+  const [firingBarrel, setFiringBarrel] = useState<number | null>(null);
+  const [musicOn, setMusicOn] = useState<boolean>(false);
   const inputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
@@ -30,8 +35,19 @@ const ShooterControls: React.FC<ShooterControlsProps> = ({
     }
   }, [showCustomInput]);
   
+  const fireBarrel = (barrelIndex: number) => {
+    setFiringBarrel(barrelIndex);
+    setTimeout(() => setFiringBarrel(null), 500);
+    soundManager.playSound('shoot');
+  };
+  
   const handlePresetShot = (quotient: number) => {
     setActiveShooter(quotient);
+    
+    // Randomly select a barrel to fire
+    const randomBarrel = Math.floor(Math.random() * divisor);
+    fireBarrel(randomBarrel);
+    
     setTimeout(() => {
       onShot(quotient);
       setActiveShooter(null);
@@ -40,6 +56,10 @@ const ShooterControls: React.FC<ShooterControlsProps> = ({
   
   const handleCustomShot = () => {
     if (customQuotient && !isNaN(parseInt(customQuotient))) {
+      // Randomly select a barrel to fire
+      const randomBarrel = Math.floor(Math.random() * divisor);
+      fireBarrel(randomBarrel);
+      
       onShot(parseInt(customQuotient));
       setCustomQuotient("");
     }
@@ -58,19 +78,30 @@ const ShooterControls: React.FC<ShooterControlsProps> = ({
     }
   };
   
+  const toggleMusic = () => {
+    const isPlaying = soundManager.toggleBackgroundMusic();
+    setMusicOn(isPlaying);
+  };
+  
   return (
     <div className="cyber-panel p-4 max-w-md mx-auto">
-      <div className="mb-2 text-center">
+      <div className="mb-2 text-center flex justify-between items-center">
         <h3 className="text-lg font-bold cyber-text">SHOOTER CONTROLS</h3>
+        <button
+          onClick={toggleMusic}
+          className="cyber-button rounded-full w-10 h-10 flex items-center justify-center p-0 bg-transparent hover:bg-cyber-core/20"
+        >
+          {musicOn ? <Volume2 size={18} /> : <VolumeX size={18} />}
+        </button>
       </div>
       
       {/* Barrel visualization */}
       <div className="relative h-16 mb-8 flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-cyber-grid bg-cyber-grid-size opacity-20"></div>
         <div className="relative z-10 w-full h-8 bg-cyber-dark border-y-2 border-cyber-core/30 flex items-center">
-          {Array(6).fill(0).map((_, i) => (
+          {Array(divisor).fill(0).map((_, i) => (
             <div key={i} className="flex-1 flex justify-center">
-              <div className="w-4 h-12 bg-cyber-accent/70 rounded-b-sm relative top-2">
+              <div className={`w-4 h-12 bg-cyber-accent/70 rounded-b-sm relative top-2 ${firingBarrel === i ? 'barrel-fire' : ''}`}>
                 <div className="absolute -top-2 left-0 right-0 h-2 bg-cyber-accent rounded-t-sm"></div>
               </div>
             </div>
@@ -80,7 +111,7 @@ const ShooterControls: React.FC<ShooterControlsProps> = ({
         {/* Barrel number indicator */}
         <div className="absolute bottom-0 left-0 right-0 flex justify-center">
           <div className="bg-black/50 px-3 py-1 rounded-md border border-cyber-core/30">
-            <span className="text-sm text-cyber-core">×6</span>
+            <span className="text-sm text-cyber-core">×{divisor}</span>
           </div>
         </div>
       </div>

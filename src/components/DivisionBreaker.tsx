@@ -4,7 +4,11 @@ import CoreDisplay from './CoreDisplay';
 import WallDisplay from './WallDisplay';
 import ShooterControls from './ShooterControls';
 import GameMessage from './GameMessage';
-import { Shield, RotateCcw } from 'lucide-react';
+import CharacterDialogue from './CharacterDialogue';
+import CoreExplosion from './CoreExplosion';
+import CustomGameSettings from './CustomGameSettings';
+import { Shield, RotateCcw, Settings } from 'lucide-react';
+import { soundManager } from '../utils/soundEffects';
 
 const DivisionBreaker: React.FC = () => {
   // Game state
@@ -17,9 +21,24 @@ const DivisionBreaker: React.FC = () => {
   const [customQuotient, setCustomQuotient] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
+  const [showExplosion, setShowExplosion] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  
+  // Character dialogue
+  const [heroText, setHeroText] = useState("We must break that wall to recover the core! Use the quotient cannons to divide 366 by 6!");
+  const [villainText, setVillainText] = useState("Your puny attempts will fail! My wall is impenetrable. The core is mine!");
+  const [showHero, setShowHero] = useState(true);
+  const [showVillain, setShowVillain] = useState(true);
   
   // Available quotient options
   const quotientOptions = [20, 40, 61];
+
+  // Initialize game sounds
+  useEffect(() => {
+    return () => {
+      soundManager.stopSound('background');
+    };
+  }, []);
 
   // Reset the game
   const resetGame = () => {
@@ -30,6 +49,27 @@ const DivisionBreaker: React.FC = () => {
     setCustomQuotient("");
     setShowCustomInput(false);
     setShowWarning(false);
+    setHeroText("We must break that wall to recover the core! Use the quotient cannons to divide 366 by 6!");
+    setVillainText("Your puny attempts will fail! My wall is impenetrable. The core is mine!");
+    setShowHero(true);
+    setShowVillain(true);
+  };
+
+  // Start a new game with custom settings
+  const startCustomGame = (newDividend: number, newDivisor: number) => {
+    setDividend(newDividend);
+    setDivisor(newDivisor);
+    setRemainingStrength(newDividend);
+    setShotHistory([]);
+    setGameStatus('playing');
+    setMessage(`New mission: Break the wall with strength ${newDividend} using ${newDivisor} power barrels!`);
+    setCustomQuotient("");
+    setShowCustomInput(false);
+    setShowWarning(false);
+    setHeroText(`We need to divide ${newDividend} by ${newDivisor} to recover the core!`);
+    setVillainText(`Ha! You'll never crack my new ${newDividend} strength wall!`);
+    setShowHero(true);
+    setShowVillain(true);
   };
 
   // Handle shot
@@ -40,6 +80,9 @@ const DivisionBreaker: React.FC = () => {
     const numQuotient = parseInt(quotient.toString());
     if (isNaN(numQuotient) || numQuotient <= 0) {
       setMessage("ERROR: Invalid quotient detected. Enter a positive number!");
+      setHeroText("That's not a valid quotient! We need a positive number.");
+      setShowHero(true);
+      setShowVillain(false);
       return;
     }
     
@@ -48,10 +91,17 @@ const DivisionBreaker: React.FC = () => {
     // Check if impossible quotient (too large)
     if (damage > remainingStrength) {
       setMessage(`WARNING: Quotient ${numQuotient} would cause ${damage} damage and destroy the core!`);
+      setHeroText(`Careful! ${numQuotient} × ${divisor} = ${damage} would overpower and destroy the core!`);
+      setVillainText("Yes! Destroy your own core! Make my job easier!");
+      setShowHero(true);
+      setShowVillain(true);
       setShowWarning(true);
       setTimeout(() => setShowWarning(false), 2000);
       return;
     }
+    
+    // Play sound effect
+    soundManager.playSound('break');
     
     const newRemaining = remainingStrength - damage;
     const newShot = { quotient: numQuotient, damage };
@@ -61,24 +111,62 @@ const DivisionBreaker: React.FC = () => {
     setRemainingStrength(newRemaining);
     setCustomQuotient("");
     
-    // Update messages based on progress
-    if (newHistory.length === 1) {
+    // Determine if it was a good shot or weak shot
+    const remainingPercentage = (newRemaining / dividend) * 100;
+    const isWeakShot = damage < (remainingStrength * 0.2); // Less than 20% damage is weak
+    
+    // Update messages based on progress and shot quality
+    if (isWeakShot) {
+      setHeroText("That was too weak! We need more power to break through!");
+      setVillainText("Haha! Is that all you've got? Just a scratch on my wall!");
+      setShowHero(true);
+      setShowVillain(true);
+      setMessage(`WEAK HIT! ${numQuotient} × ${divisor} = ${damage}. Wall integrity at ${newRemaining}.`);
+    } else if (newHistory.length === 1) {
+      setHeroText("Good hit! Keep going, we're making progress!");
+      setVillainText("Argh! My wall is still standing, but you got lucky!");
+      setShowHero(true);
+      setShowVillain(true);
       setMessage(`DIRECT HIT! ${numQuotient} × ${divisor} = ${damage}. Wall integrity at ${newRemaining}.`);
     } else if (newHistory.length === 2) {
+      setHeroText("The wall is weakening! One more strategic shot!");
+      setVillainText("No! My wall is cracking! You won't succeed!");
+      setShowHero(true);
+      setShowVillain(true);
       setMessage("Wall integrity weakening! Keep firing strategically.");
     } else if (newHistory.length === 3) {
+      setHeroText("Almost there! One more precise shot to break through!");
+      setVillainText("Impossible! My wall cannot fail me now!");
+      setShowHero(true);
+      setShowVillain(true);
       setMessage("Almost there! One more precise shot needed to breach the wall.");
     }
     
     // Check win/loss conditions
     if (newRemaining === 0) {
+      soundManager.playSound('levelComplete');
       setGameStatus('won');
+      setHeroText("Mission accomplished! The core is back in our hands!");
+      setVillainText("Nooooo! My beautiful wall! You'll regret this!");
+      setShowHero(true);
+      setShowVillain(true);
       setMessage("SUCCESS! Wall breached! The core has been recovered safely.");
     } else if (newRemaining < 0) {
+      soundManager.playSound('explosion');
       setGameStatus('lost');
+      setHeroText("No! The core has been damaged! We need to try again!");
+      setVillainText("You fools! You destroyed your own core!");
+      setShowHero(true);
+      setShowVillain(true);
+      setShowExplosion(true);
       setMessage("CRITICAL ERROR! Shot too powerful - core has been damaged in the breach!");
     } else if (newHistory.length >= 4 && newRemaining > 0) {
+      soundManager.playSound('gameOver');
       setGameStatus('lost');
+      setHeroText("We've run out of shots! The villain has secured the core!");
+      setVillainText("Too many attempts! The core is mine now! Victory!");
+      setShowHero(true);
+      setShowVillain(true);
       setMessage("LOCKOUT INITIATED! Too many attempts - the villain has secured the core!");
     }
   };
@@ -126,6 +214,14 @@ const DivisionBreaker: React.FC = () => {
           {/* Core Display */}
           <CoreDisplay gameStatus={gameStatus} />
           
+          {/* Character Dialogue */}
+          <CharacterDialogue 
+            heroText={heroText}
+            villainText={villainText}
+            showHero={showHero}
+            showVillain={showVillain}
+          />
+          
           {/* Game Message */}
           <GameMessage message={message} gameStatus={gameStatus} />
           
@@ -152,15 +248,29 @@ const DivisionBreaker: React.FC = () => {
             </div>
           </div>
           
-          {/* Reset button */}
-          {gameStatus !== 'playing' && (
-            <button onClick={resetGame} className="cyber-button w-full py-3">
-              <div className="flex items-center justify-center gap-2">
-                <RotateCcw size={18} />
-                <span>RESTART MISSION</span>
-              </div>
-            </button>
-          )}
+          {/* Reset and settings buttons */}
+          <div className="flex gap-4">
+            {gameStatus !== 'playing' && (
+              <button onClick={resetGame} className="cyber-button flex-1 py-3">
+                <div className="flex items-center justify-center gap-2">
+                  <RotateCcw size={18} />
+                  <span>RESTART MISSION</span>
+                </div>
+              </button>
+            )}
+            
+            {gameStatus !== 'playing' && (
+              <button 
+                onClick={() => setShowSettingsDialog(true)} 
+                className="cyber-button flex-1 py-3 bg-cyber-accent/70"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Settings size={18} />
+                  <span>NEW MISSION</span>
+                </div>
+              </button>
+            )}
+          </div>
         </div>
         
         <div className="space-y-6">
@@ -180,6 +290,7 @@ const DivisionBreaker: React.FC = () => {
             setCustomQuotient={setCustomQuotient}
             showCustomInput={showCustomInput}
             setShowCustomInput={setShowCustomInput}
+            divisor={divisor}
           />
         </div>
       </div>
@@ -194,6 +305,21 @@ const DivisionBreaker: React.FC = () => {
           <li>• Use the custom quotient option for precision attacks.</li>
         </ul>
       </footer>
+      
+      {/* Core Explosion Animation */}
+      <CoreExplosion 
+        show={showExplosion} 
+        onAnimationEnd={() => setShowExplosion(false)} 
+      />
+      
+      {/* Custom Game Settings Dialog */}
+      <CustomGameSettings
+        open={showSettingsDialog}
+        onOpenChange={setShowSettingsDialog}
+        onSubmit={startCustomGame}
+        currentDividend={dividend}
+        currentDivisor={divisor}
+      />
     </div>
   );
 };
